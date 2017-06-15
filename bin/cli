@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+def script_cycle(user)
+  while true
+    puts "Enter any url to shorten it"
+    puts "Or just hit 'return' to see all available and visit"
+
+    input = gets.chomp
+    if input.empty?
+      all_urls = ShortenedUrl.all
+
+      all_urls.each_with_index do |url, idx|
+        puts "[#{idx}] #{url.short_url} -> #{url.long_url}"
+      end
+
+      puts "Enter an index to visit the url"
+
+      idx = gets.chomp.to_i
+
+      Launchy.open(all_urls[idx].long_url)
+      Visit.record_visit!(user, all_urls[idx])
+    else
+      short = ShortenedUrl.shorten_url(user, input)
+      short.save
+      puts "Shortened #{input} to #{short.short_url}"
+    end
+  end
+end
+
+puts "Please enter your email"
+
+current_user = User.find_by(email: gets.chomp)
+
+while current_user.nil?
+  puts "No current_user found with that email. Try again."
+  current_user = User.find_by(email: gets.chomp)
+end
+
+puts "Welcome!"
+
+script_cycle(current_user)
